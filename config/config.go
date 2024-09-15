@@ -23,6 +23,8 @@ type Service struct {
 	Headers       []Header `yaml:"headers"`
 	Routes        []Route  `yaml:"routes"`
 	NeedsChromedp bool     `yaml:"chromedp"`
+	UseCache      bool     `yaml:"use_cache"`      // Новое поле: использование кэша
+	CacheDuration string   `yaml:"cache_duration"` // Новое поле: время жизни кэша
 }
 
 type Route struct {

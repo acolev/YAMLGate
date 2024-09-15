@@ -2,9 +2,9 @@ package gateway
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"YAMLGate/config"
@@ -24,7 +24,7 @@ func createChromedpHandler(service config.Service, route config.Route) http.Hand
 		}
 
 		// Логирование полного URL перед запросом
-		proxyURL := fmt.Sprintf("%s/%s", service.ProxyURL, fullPath)
+		proxyURL := strings.TrimRight(service.ProxyURL, "/") + "/" + strings.TrimLeft(fullPath, "/")
 		log.Printf("Проксируем запрос через chromedp на URL: %s", proxyURL)
 
 		// Выполняем запрос через chromedp

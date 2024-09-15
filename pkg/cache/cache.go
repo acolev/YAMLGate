@@ -5,42 +5,48 @@ import (
 	"time"
 )
 
-type Cache struct {
-	mu    sync.RWMutex
-	items map[string]CacheItem
-}
-
 type CacheItem struct {
-	Value      interface{}
-	Expiration int64
+	Response   []byte
+	Expiration time.Time
 }
 
-// Создание нового кэша
-func NewCache() *Cache {
-	return &Cache{
-		items: make(map[string]CacheItem),
-	}
-}
+var (
+	cache      = make(map[string]CacheItem)
+	cacheMutex sync.RWMutex
+	cacheTTL   = 5 * time.Minute // Время жизни кэша по умолчанию
+)
 
-// Добавление элемента в кэш
-func (c *Cache) Set(key string, value interface{}, duration time.Duration) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.items[key] = CacheItem{
-		Value:      value,
-		Expiration: time.Now().Add(duration).UnixNano(),
-	}
-}
+// GetFromCache получает данные из кэша, если они еще действительны.
+func GetFromCache(key string) ([]byte, bool) {
+	cacheMutex.RLock()
+	defer cacheMutex.RUnlock()
 
-// Получение элемента из кэша
-func (c *Cache) Get(key string) (interface{}, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	item, found := c.items[key]
-	if !found || time.Now().UnixNano() > item.Expiration {
+	item, found := cache[key]
+	if !found || time.Now().After(item.Expiration) {
+		// Если данные не найдены или истекло время их действия
 		return nil, false
 	}
+	return item.Response, true
+}
 
-	return item.Value, true
+// SaveToCache сохраняет данные в кэш с указанным временем жизни.
+func SaveToCache(key string, response []byte, duration time.Duration) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	cache[key] = CacheItem{
+		Response:   response,
+		Expiration: time.Now().Add(duration),
+	}
+}
+
+// GetCacheDuration возвращает время жизни кэша для сервиса или глобальное значение по умолчанию.
+func GetCacheDuration(cacheDuration string, defaultDuration time.Duration) time.Duration {
+	if cacheDuration != "" {
+		duration, err := time.ParseDuration(cacheDuration)
+		if err == nil {
+			return duration
+		}
+	}
+	return defaultDuration
 }
