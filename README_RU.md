@@ -60,7 +60,7 @@ services:
     proxy_url: "https://jsonip.com"
     service_path: "/"
     gateway_path: "/getip"
-    needs_chromedp: true  # Использовать chromedp для этого сервиса
+    chromedp: true  # Использовать chromedp для этого сервиса
 
   - name: "jsonplaceholder"
     proxy_url: "https://jsonplaceholder.typicode.com"
@@ -71,7 +71,7 @@ services:
       - service_path: "/posts/{id}"
         gateway_path: "/json-post/{id}"
         method: "GET"
-    needs_chromedp: false  # Стандартное проксирование
+    chromedp: false  # Стандартное проксирование
 ```
 
 ### Параметры конфигурации:
