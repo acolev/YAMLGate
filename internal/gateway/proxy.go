@@ -17,7 +17,8 @@ func createProxyHandler(service config.Service, route config.Route, globalHeader
 		subpath := mux.Vars(r)["subpath"]
 		fullPath := route.ServicePath
 		if subpath != "" {
-			fullPath = route.ServicePath + "/" + subpath
+			// Формируем полный путь запроса, включая динамические подкаталоги
+			fullPath = route.ServicePath[:len(route.ServicePath)-len("/{subpath:.*}")] + subpath
 		}
 
 		// Создаем URL для проксирования
